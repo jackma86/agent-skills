@@ -1,5 +1,7 @@
 # Agent Skills
 
+简体中文 | [English](README.en.md)
+
 面向 coding agent 的开发工作流技能集，整理代码修改、自检、fork 上游同步和版本发布中的可复用流程。
 
 每个 Skill 以独立的 `SKILL.md` 提供指令，不绑定具体项目、账号或技术栈。项目规则由目标仓库的 `AGENTS.md` 和贡献规范定义。
@@ -18,6 +20,7 @@ agent-skills/
 ├── .gitignore
 ├── LICENSE
 ├── README.md
+├── README.en.md
 ├── code-change-check/
 │   └── SKILL.md
 └── fork-upstream-sync/
@@ -53,7 +56,7 @@ $fork-upstream-sync 检查当前 fork 的上游变化和自有定制，只报告
 
 * 通用工作流放在 Skill 中，项目专有规则留在目标仓库。
 * 不将实际运行中的凭据、私有仓库信息、业务记录或本机路径写回通用 Skill。
-* 新增或调整 Skill 时，同步更新本页索引，并检查本地链接和入口格式。
+* 新增或调整 Skill 时，同步更新中英文 README 的索引，并检查本地链接和入口格式。
 
 ## 来源
 
