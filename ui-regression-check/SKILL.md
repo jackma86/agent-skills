@@ -16,11 +16,11 @@ description: 为 iOS / Xcode 小范围修复选择并运行最小相关 UI 回�
 
 ## 配置执行器模板
 
-[执行脚本](scripts/run_ui_regression.py)及其[行为测试](scripts/test_ui_regression.py)提供 iOS 模拟器定向回归模板。`ExampleApp`、测试名和保留设备名均为虚构占位值，不代表实际项目。先将执行器复制到目标项目的脚本目录，再按现有构建配置替换文件顶部的设置：
+[执行脚本](scripts/run_ui_regression.py)及其[行为测试](scripts/test_ui_regression.py)提供 iOS 模拟器定向回归模板。`ExampleApp`、测试名和保留设备名均为虚构占位值，不代表实际项目。将执行器和测试脚本一起复制到目标项目的同一脚本目录，再按现有构建配置替换执行器顶部的设置：
 
 * `PROJECT_FILE`、`BUILD_SETTINGS`：实际 `.xcodeproj`、scheme、configuration、SDK 和签名参数。模板使用 Debug 模拟器本地签名，需要 Keychain 的场景不要关闭签名。
 * `TEST_SOURCE`、`TEST_PREFIX`：本次测试类的源码路径及 `测试 target/测试类/` 前缀。源码文件应只包含所选测试类，先核对当前方法名。
-* `BUILD_INPUTS`：覆盖 App、依赖、测试、资源、项目声明和锁文件的完整构建输入。
+* `BUILD_INPUTS`：使用相对目标项目根目录的路径，覆盖 App、依赖、测试、资源、项目声明和锁文件。每项必须存在，路径写错会报错并停止，不能跳过后复用构建。路径存在仍不代表覆盖完整，需按项目实际构建配置核对遗漏。
 * `EXPECTED_BINARIES`：相对 DerivedData `Build/Products/` 的 App 和 UI 测试可执行文件路径，与当前构建配置保持一致。
 * `PROTECTED_DEVICES`：项目保留或其他验收专用的设备名。使用 `xcrun simctl list devices available` 核对现有设备及占用情况，不操作被保留的设备。
 
@@ -46,6 +46,6 @@ python3 Scripts/run_ui_regression.py --device <UDID> --test <testMethod>
 
 ## 交付证据
 
-修改模板时先运行 `python3 -B scripts/test_ui_regression.py`（相对本 Skill 目录）。适配到实际项目后，再用模拟器验证首次构建、复用和失败识别。模板测试不替代真实 XCTest。
+修改模板时先运行 `python3 -B scripts/test_ui_regression.py`（相对本 Skill 目录）。复制并适配后，在目标项目根目录运行 `python3 -B Scripts/test_ui_regression.py`，按实际复制位置替换路径。测试从同目录执行器的配置生成临时项目和产物，不调用 Xcode 或设备，也不修改目标项目数据。之后再用实际模拟器验证首次构建、复用和失败识别，模板测试不替代真实 XCTest。
 
 报告场景、设备／系统、源码版本、构建复用情况、通过／失败／跳过及耗时。原始日志、`.xcresult` 和真实项目配置留在目标项目环境，不回写公开 Skill。区分本轮、历史和未执行的验证。

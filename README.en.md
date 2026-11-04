@@ -77,8 +77,12 @@ The [official Claude Code documentation](https://code.claude.com/docs/en/skills)
 ## Maintenance
 
 * Keep reusable workflows in skills and project-specific rules in the target repository.
-* Keep real project names, personal attribution, credentials, private repository information, business records, and absolute machine paths out of documentation, scripts, tests, metadata, and PR descriptions. Label fictional placeholders clearly. See [AGENTS.md](AGENTS.md) for public-content conventions.
+* Keep real target-project names, personal attribution, credentials, private repository information, business records, and absolute machine paths out of documentation, scripts, tests, metadata, and PR descriptions. Label fictional placeholders clearly. Public third-party references and necessary acknowledgments may remain. See [AGENTS.md](AGENTS.md) for public-content conventions.
 * When adding or updating a skill, update the indexes in both READMEs and check local links and skill entry formats.
+
+## Acknowledgments
+
+Public references for `code-change-check` are listed in its [References](code-change-check/SKILL.md#参考来源) section.
 
 ## License
 

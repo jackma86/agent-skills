@@ -33,10 +33,14 @@ BUILD_TIMEOUT = 1800
 TEST_TIMEOUT = 600
 PROTECTED_DEVICES = {"Reserved iPhone", "Reserved iPad"}
 TEST_PREFIX = "ExampleAppUITests/ExampleAppUITests/"
+CONFIGURATION_HINT = "请先按 SKILL.md 配置文件顶部的设置，并从目标项目根目录运行。"
 
 
 def selected_tests(root, names):
-    source = (root / TEST_SOURCE).read_text()
+    try:
+        source = (root / TEST_SOURCE).read_text()
+    except FileNotFoundError as error:
+        raise FileNotFoundError(f"测试源码不存在：{TEST_SOURCE}。{CONFIGURATION_HINT}") from error
     available = set(re.findall(r"^\s*func (test\w+)\(", source, re.MULTILINE))
     result = []
     for name in names:
@@ -61,6 +65,8 @@ def fingerprint(root, toolchain):
                 children[:] = [name for name in children if name not in EXCLUDED_DIRECTORIES]
                 files.extend(Path(directory) / name for name in names
                              if name not in EXCLUDED_FILES and not name.endswith(".xcuserstate"))
+        else:
+            raise FileNotFoundError(f"构建输入不存在或不是普通文件／目录：{name}。{CONFIGURATION_HINT}")
     for path in sorted(files):
         digest.update(str(path.relative_to(root)).encode() + b"\0")
         digest.update(hashlib.sha256(path.read_bytes()).digest())
@@ -195,10 +201,10 @@ def run(root, args):
     with lease(cache / "run.lock") as cache_fd, lease(device_lock) as device_fd:
         lock_fds = (cache_fd, device_fd)
         started = time.monotonic()
+        before = fingerprint(root, tools)
         directory = cache / "runs" / (time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:8])
         directory.mkdir(parents=True)
         print(f"[DEVICE] {device['name']} ({device_id})\n[ARTIFACTS] {directory}", flush=True)
-        before = fingerprint(root, tools)
         result = directory / "Test.xcresult"
         summary = None
         failure = None
@@ -257,7 +263,7 @@ def run(root, args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--device", required=True, help="现有且未被项目保留的模拟器 UDID")
-    parser.add_argument("--test", action="append", required=True, help="完整用例方法名或 ExampleAppUITests/ExampleAppUITests/test...，可重复指定")
+    parser.add_argument("--test", action="append", required=True, help="完整用例方法名或已配置的 target/class/test...，可重复指定")
     parser.add_argument("--cache-dir", type=Path, help="构建缓存及原始日志目录，默认位于本机 Library/Caches")
     parser.add_argument("--rebuild", action="store_true", help="主动重新增量构建，不清空 DerivedData")
     parser.add_argument("--build-timeout", type=int, default=BUILD_TIMEOUT, help="构建超时秒数，默认 1800")

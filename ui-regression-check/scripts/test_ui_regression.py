@@ -21,22 +21,29 @@ class UIRegressionRunnerTests(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name) / "project"
+        self.root = (Path(temporary.name) / "project").resolve()
         self.cache = Path(temporary.name) / "cache"
         self.directory = self.cache / "runs/fixture"
         self.directory.mkdir(parents=True)
-        for name, content in {
-            "App/Screen.swift": "struct Screen {}",
-            "App/Resources/icon.png": "fixture-image",
-            "Packages/Core/Package.swift": "fixture-package",
-            "Packages/Core/Package.resolved": "fixture-lock",
-            "Tests/ExampleAppUITests/ExampleAppUITests.swift": "func testFirst() {}\nfunc testSecond() {}\nfunc testRealCloud() {}\n",
-            "ExampleApp.xcodeproj/project.pbxproj": "fixture-project",
-            "project.yml": "fixture-configuration",
-        }.items():
-            path = self.root / name
+        self.root.mkdir()
+        self.input_files = []
+        self.input_directories = []
+        for name in runner.BUILD_INPUTS:
+            path = self.fixture_path(name)
+            if path == self.fixture_path(runner.PROJECT_FILE):
+                path = path / "project.pbxproj"
+            elif not path.suffix:
+                self.input_directories.append(path)
+                path = path / "fixture.txt"
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content)
+            path.write_text("fixture-input")
+            self.input_files.append(path)
+        self.source = self.input_files[0]
+        self.test_source = self.fixture_path(runner.TEST_SOURCE)
+        self.test_source.parent.mkdir(parents=True, exist_ok=True)
+        self.test_source.write_text("func testFirst() {}\nfunc testSecond() {}\nfunc testRealCloud() {}\n")
+        for name in runner.EXPECTED_BINARIES:
+            self.fixture_path(name, self.cache / "DerivedData/Build/Products")
         locks = patch.object(runner, "DEVICE_LOCK_DIRECTORY", self.cache / "device-locks")
         locks.start()
         self.addCleanup(locks.stop)
@@ -46,10 +53,15 @@ class UIRegressionRunnerTests(unittest.TestCase):
         self.output.start()
         self.addCleanup(self.output.stop)
 
+    def fixture_path(self, name, directory=None):
+        directory = directory or self.root
+        path = (directory / name).resolve()
+        path.relative_to(directory.resolve())
+        return path
+
     def build_products(self, *unused):
         products = self.cache / "DerivedData/Build/Products"
-        for name in ["ExampleApp_fixture.xctestrun", "Debug-iphonesimulator/ExampleApp.app/ExampleApp",
-                     "Debug-iphonesimulator/ExampleAppUITests-Runner.app/PlugIns/ExampleAppUITests.xctest/ExampleAppUITests"]:
+        for name in ["fixture.xctestrun", *runner.EXPECTED_BINARIES]:
             path = products / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("fixture-build")
@@ -65,20 +77,17 @@ class UIRegressionRunnerTests(unittest.TestCase):
             (self.root / "notes.md").write_text("Unrelated documentation")
             self.assertEqual(self.build(), first)
             self.assertEqual(command.call_count, 1)
-            (self.root / "App/Screen.swift").write_text("struct ChangedScreen {}")
+            self.source.write_text("struct ChangedScreen {}")
             self.build()
             self.assertEqual(command.call_count, 2)
             args = command.call_args.args[0]
-            self.assertIn("CODE_SIGNING_ALLOWED=YES", args)
-            self.assertIn("CODE_SIGN_IDENTITY=-", args)
+            settings = args.index("-destination") - len(runner.BUILD_SETTINGS)
+            self.assertEqual(args[settings:settings + len(runner.BUILD_SETTINGS)], runner.BUILD_SETTINGS)
 
     def test_sources_tests_resources_dependencies_and_toolchain_invalidate_cache(self):
         initial = runner.fingerprint(self.root, self.tools)
-        for name in ["App/Screen.swift", "App/Resources/icon.png", "Packages/Core/Package.swift",
-                     "Packages/Core/Package.resolved", "Tests/ExampleAppUITests/ExampleAppUITests.swift",
-                     "ExampleApp.xcodeproj/project.pbxproj", "project.yml"]:
-            with self.subTest(name=name):
-                path = self.root / name
+        for path in dict.fromkeys([*self.input_files, self.test_source]):
+            with self.subTest(path=str(path.relative_to(self.root))):
                 before = path.read_bytes()
                 path.write_bytes(before + b" changed")
                 self.assertNotEqual(runner.fingerprint(self.root, self.tools), initial)
@@ -90,19 +99,50 @@ class UIRegressionRunnerTests(unittest.TestCase):
 
     def test_build_and_personal_xcode_state_do_not_invalidate_cache(self):
         initial = runner.fingerprint(self.root, self.tools)
-        for name in ["Packages/Core/.build/cache", "ExampleApp.xcodeproj/xcuserdata/person.xcuserstate"]:
-            path = self.root / name
+        for path in [self.source.parent / ".build/cache",
+                     self.fixture_path(runner.PROJECT_FILE) / "xcuserdata/person.xcuserstate"]:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("machine-local state")
         self.assertEqual(runner.fingerprint(self.root, self.tools), initial)
 
     def test_finder_metadata_is_ignored_but_other_new_inputs_are_conservative(self):
         initial = runner.fingerprint(self.root, self.tools)
-        for name in ["App/.DS_Store", "Packages/Core/.DS_Store", "Tests/.DS_Store"]:
-            (self.root / name).write_text("Finder metadata")
+        for directory in self.input_directories:
+            (directory / ".DS_Store").write_text("Finder metadata")
         self.assertEqual(runner.fingerprint(self.root, self.tools), initial)
-        (self.root / "App/new-input").write_text("potential build input")
-        self.assertNotEqual(runner.fingerprint(self.root, self.tools), initial)
+        if self.input_directories:
+            (self.input_directories[0] / "new-input").write_text("potential build input")
+            self.assertNotEqual(runner.fingerprint(self.root, self.tools), initial)
+
+    def test_missing_build_input_is_not_silently_skipped(self):
+        for name in ["missing-directory", "missing-file.swift"]:
+            with self.subTest(name=name), patch.object(runner, "BUILD_INPUTS", [*runner.BUILD_INPUTS, name]):
+                with self.assertRaisesRegex(FileNotFoundError, name):
+                    runner.fingerprint(self.root, self.tools)
+
+    def test_missing_build_input_prevents_reusing_existing_build(self):
+        with patch.object(runner, "logged", side_effect=self.build_products):
+            self.build()
+        args = SimpleNamespace(device=self.device, test=["testFirst"], cache_dir=self.cache, rebuild=False,
+                               build_timeout=30, test_timeout=30, keep_runs=None)
+        with patch.object(runner, "BUILD_INPUTS", [*runner.BUILD_INPUTS, "missing-directory"]), \
+                patch.object(runner.subprocess, "check_output", side_effect=self.tool_output), \
+                patch.object(runner, "ensure_build") as build:
+            with self.assertRaisesRegex(FileNotFoundError, "missing-directory"):
+                runner.run(self.root, args)
+            build.assert_not_called()
+        self.assertFalse(list((self.cache / "runs").glob("*/summary.json")))
+
+    def test_missing_test_source_reports_configuration_hint_without_invoking_xcode(self):
+        self.test_source.unlink()
+        argv = ["run_ui_regression.py", "--device", self.device, "--test", "testFirst"]
+        errors = io.StringIO()
+        with patch.object(runner.sys, "argv", argv), patch.object(runner.Path, "cwd", return_value=self.root), \
+                patch.object(runner.subprocess, "check_output") as command, redirect_stderr(errors):
+            self.assertEqual(runner.main(), 2)
+        self.assertIn("SKILL.md", errors.getvalue())
+        self.assertIn(runner.TEST_SOURCE, errors.getvalue())
+        command.assert_not_called()
 
     def test_failed_forced_rebuild_cannot_reuse_earlier_manifest(self):
         with patch.object(runner, "logged", side_effect=self.build_products):
@@ -116,7 +156,7 @@ class UIRegressionRunnerTests(unittest.TestCase):
     def test_changing_source_during_build_never_marks_build_reusable(self):
         def changed_build(*args):
             self.build_products()
-            (self.root / "App/Screen.swift").write_text("changed during build")
+            self.source.write_text("changed during build")
         with patch.object(runner, "logged", side_effect=changed_build):
             with self.assertRaisesRegex(RuntimeError, "构建期间源码发生变化"):
                 self.build()
@@ -125,13 +165,13 @@ class UIRegressionRunnerTests(unittest.TestCase):
     def test_deleted_product_requires_new_build(self):
         with patch.object(runner, "logged", side_effect=self.build_products) as command:
             self.build()
-            (self.cache / "DerivedData/Build/Products/Debug-iphonesimulator/ExampleApp.app/ExampleApp").unlink()
+            (self.cache / "DerivedData/Build/Products" / runner.EXPECTED_BINARIES[0]).unlink()
             self.build()
             self.assertEqual(command.call_count, 2)
 
     def test_unknown_wildcard_and_real_service_tests_are_rejected(self):
         self.assertEqual(runner.selected_tests(self.root, ["testFirst", runner.TEST_PREFIX + "testFirst"]), [runner.TEST_PREFIX + "testFirst"])
-        for name in ["testMissing", "ExampleAppUITests", "*", "testRealCloud", "ExampleAppUITests/ExampleAppRealAPIUITests/testFirst"]:
+        for name in ["testMissing", runner.TEST_PREFIX.rstrip("/"), "*", "testRealCloud", "OtherTarget/OtherClass/testFirst"]:
             with self.subTest(name=name), self.assertRaises(ValueError):
                 runner.selected_tests(self.root, [name])
 
@@ -186,9 +226,10 @@ class UIRegressionRunnerTests(unittest.TestCase):
     def test_reserved_device_is_rejected_before_build_or_boot(self):
         args = SimpleNamespace(device=self.device, test=["testFirst"], cache_dir=self.cache, rebuild=False,
                                build_timeout=runner.BUILD_TIMEOUT, test_timeout=runner.TEST_TIMEOUT, keep_runs=None)
-        devices = {"devices": {"fixture": [dict(udid=self.device, name="Reserved iPhone", state="Shutdown")]}}
+        reserved = next(iter(runner.PROTECTED_DEVICES), "Fixture Reserved Device")
+        devices = {"devices": {"fixture": [dict(udid=self.device, name=reserved, state="Shutdown")]}}
         with patch.object(runner.subprocess, "check_output", return_value=json.dumps(devices)) as output, \
-                patch.object(runner, "logged") as command:
+                patch.object(runner, "PROTECTED_DEVICES", {reserved}), patch.object(runner, "logged") as command:
             with self.assertRaisesRegex(ValueError, "未被项目保留的模拟器"):
                 runner.run(self.root, args)
             self.assertEqual(output.call_count, 1)
@@ -211,15 +252,14 @@ with (root / "commands.log").open("a") as out:
     out.write(Path(sys.argv[0]).name + " " + " ".join(sys.argv[1:]) + "\\n")
 if "build-for-testing" in sys.argv:
     products = cache / "DerivedData/Build/Products"
-    for name in ["ExampleApp_fixture.xctestrun", "Debug-iphonesimulator/ExampleApp.app/ExampleApp",
-                 "Debug-iphonesimulator/ExampleAppUITests-Runner.app/PlugIns/ExampleAppUITests.xctest/ExampleAppUITests"]:
+    for name in ["fixture.xctestrun", *json.loads(os.environ["UI_FIXTURE_BINARIES"])]:
         path = products / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("build")
 elif "test-without-building" in sys.argv:
     Path(sys.argv[sys.argv.index("-resultBundlePath") + 1]).mkdir()
     if os.environ["UI_FIXTURE_CHANGE"] == "1":
-        (root / "App/Screen.swift").write_text("changed during failing test")
+        Path(os.environ["UI_FIXTURE_SOURCE"]).write_text("changed during failing test")
     print("fixture XCTest failure")
     sys.exit(65)
 elif "xcresulttool" in sys.argv:
@@ -232,6 +272,8 @@ elif "xcresulttool" in sys.argv:
             "PATH": str(tools) + os.pathsep + os.environ["PATH"],
             "UI_FIXTURE_ROOT": str(self.root), "UI_FIXTURE_CACHE": str(self.cache),
             "UI_FIXTURE_CHANGE": "1" if change_source else "0",
+            "UI_FIXTURE_SOURCE": str(self.source),
+            "UI_FIXTURE_BINARIES": json.dumps(runner.EXPECTED_BINARIES),
         })
         environment.start()
         self.addCleanup(environment.stop)
