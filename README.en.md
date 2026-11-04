@@ -4,7 +4,7 @@
 
 A collection of reusable workflows for coding agents, covering code changes, self-review, fork synchronization, and version releases.
 
-Each skill provides instructions in its own `SKILL.md` and is independent of any specific project, account, or technology stack. Project rules come from the target repository's `AGENTS.md` and contribution guidelines.
+Each skill provides instructions in its own `SKILL.md` and is independent of any specific project, account, or technology stack. Project rules come from the `AGENTS.md`, `CLAUDE.md`, or equivalent instructions recognized by the current tool, along with contribution guidelines.
 
 The skill instructions are currently written in Simplified Chinese.
 
@@ -26,7 +26,10 @@ agent-skills/
 ├── code-change-check/
 │   └── SKILL.md
 └── fork-upstream-sync/
-    └── SKILL.md
+    ├── SKILL.md
+    └── references/
+        ├── release.md
+        └── validation.md
 ```
 
 ## Installation and usage
@@ -40,7 +43,9 @@ The [official Codex documentation](https://learn.chatgpt.com/docs/build-skills#w
 * Personal use: `~/.agents/skills/<skill-name>/SKILL.md`.
 * Shared within a project: `.agents/skills/<skill-name>/SKILL.md` in the target project.
 
-Copy only the skill directories you need, such as `code-change-check/`. You do not need to place the entire repository in your skills directory. If a skill with the same name already exists at the destination, compare the contents before updating it.
+Some existing Codex environments and installers use `$CODEX_HOME/skills`, commonly `~/.codex/skills` when `CODEX_HOME` is unset. Keep using that location if your current tool discovers skills there. Follow the paths reported by your tool and installer, and avoid installing the same skill in both personal directories.
+
+Copy each complete skill directory you need, such as `fork-upstream-sync/` including its `references/`. You do not need to place the entire repository in your skills directory. If a skill with the same name already exists at the destination, compare the contents before updating it.
 
 After installation, invoke the skill explicitly in a chat for the target project:
 
@@ -53,6 +58,10 @@ $fork-upstream-sync Check upstream changes and customizations in the current for
 ```
 
 For `fork-upstream-sync`, synchronization, pushes, pull requests, and version releases follow the scope authorized by the current task. Installing the skill does not create scheduled tasks or start synchronization automatically.
+
+### Claude Code
+
+The [official Claude Code documentation](https://code.claude.com/docs/en/skills) lists `~/.claude/skills/<skill-name>/SKILL.md` for personal skills and `.claude/skills/<skill-name>/SKILL.md` in the target project for project skills. Copy the complete skill directory, confirm discovery, then invoke `/code-change-check` or `/fork-upstream-sync`. Installing into a Codex directory does not also install the skill for Claude Code.
 
 ## Maintenance
 

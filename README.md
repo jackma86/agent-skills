@@ -4,7 +4,7 @@
 
 面向 coding agent 的开发工作流技能集，整理代码修改、自检、fork 上游同步和版本发布中的可复用流程。
 
-每个 Skill 以独立的 `SKILL.md` 提供指令，不绑定具体项目、账号或技术栈。项目规则由目标仓库的 `AGENTS.md` 和贡献规范定义。
+每个 Skill 以独立的 `SKILL.md` 提供指令，不绑定具体项目、账号或技术栈。项目规则由当前工具识别的 `AGENTS.md`、`CLAUDE.md` 或等价说明及贡献规范定义。
 
 ## 技能索引
 
@@ -24,7 +24,10 @@ agent-skills/
 ├── code-change-check/
 │   └── SKILL.md
 └── fork-upstream-sync/
-    └── SKILL.md
+    ├── SKILL.md
+    └── references/
+        ├── release.md
+        └── validation.md
 ```
 
 ## 安装与使用
@@ -38,7 +41,9 @@ agent-skills/
 * 个人使用：`~/.agents/skills/<skill-name>/SKILL.md`。
 * 项目共享：目标项目的 `.agents/skills/<skill-name>/SKILL.md`。
 
-只复制需要的技能子目录，例如 `code-change-check/`，无需把整个仓库放入技能目录。目标位置已有同名 Skill 时，先比较内容再决定是否更新。
+部分现有 Codex 环境及安装器使用 `$CODEX_HOME/skills`，未设置 `CODEX_HOME` 时常见位置为 `~/.codex/skills`。已有技能能被当前工具发现时可沿用该位置，以当前工具列出的路径和安装器说明为准，避免在两个个人目录重复安装同名技能。
+
+只复制需要的完整技能子目录，例如 `fork-upstream-sync/` 及其 `references/`，无需把整个仓库放入技能目录。目标位置已有同名 Skill 时，先比较内容再决定是否更新。
 
 安装后，在目标项目的聊天中显式调用：
 
@@ -51,6 +56,10 @@ $fork-upstream-sync 检查当前 fork 的上游变化和自有定制，只报告
 ```
 
 `fork-upstream-sync` 的同步、push、PR 和版本发布按当前任务已授权的范围执行。安装 Skill 不会自动创建定时任务或启动同步。
+
+### Claude Code
+
+按 [Claude Code 官方说明](https://code.claude.com/docs/en/skills)，个人技能放在 `~/.claude/skills/<skill-name>/SKILL.md`，项目技能放在目标项目的 `.claude/skills/<skill-name>/SKILL.md`。复制完整技能目录并确认已被发现后，用 `/code-change-check` 或 `/fork-upstream-sync` 调用。安装到 Codex 的目录不会自动完成 Claude Code 安装。
 
 ## 维护约定
 
