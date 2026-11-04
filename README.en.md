@@ -2,7 +2,7 @@
 
 [简体中文](README.md) | English
 
-A collection of reusable workflows for coding agents, covering code changes, self-review, fork synchronization, and version releases.
+A collection of reusable workflows for coding agents, covering code changes, self-review, pull request reviews, fork synchronization, and version releases.
 
 Each skill provides instructions in its own `SKILL.md` and is independent of any specific project, account, or technology stack. Project rules come from the `AGENTS.md`, `CLAUDE.md`, or equivalent instructions recognized by the current tool, along with contribution guidelines.
 
@@ -12,7 +12,7 @@ The skill instructions are currently written in Simplified Chinese.
 
 | Skill | Purpose | Use cases |
 | --- | --- | --- |
-| [code-change-check](code-change-check/SKILL.md) | Trace call paths, make minimal but complete changes, review the full diff, and validate the result | Bug fixes, feature changes, and refactoring |
+| [code-change-check](code-change-check/SKILL.md) | Trace call paths, make minimal but complete changes, review the full diff, and validate the result, with a read-only PR review mode | Bug fixes, feature changes, refactoring, and PR reviews |
 | [fork-upstream-sync](fork-upstream-sync/SKILL.md) | Identify upstream and fork repositories, preserve customizations, sync upstream changes, and publish traceable fork tags | Fork status checks, upstream merges, and releases based on official upstream tags or branch snapshots |
 
 ## Repository structure

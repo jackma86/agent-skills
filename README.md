@@ -2,7 +2,7 @@
 
 简体中文 | [English](README.en.md)
 
-面向 coding agent 的开发工作流技能集，整理代码修改、自检、fork 上游同步和版本发布中的可复用流程。
+面向 coding agent 的开发工作流技能集，整理代码修改、自检、PR 审查、fork 上游同步和版本发布中的可复用流程。
 
 每个 Skill 以独立的 `SKILL.md` 提供指令，不绑定具体项目、账号或技术栈。项目规则由当前工具识别的 `AGENTS.md`、`CLAUDE.md` 或等价说明及贡献规范定义。
 
@@ -10,7 +10,7 @@
 
 | Skill | 用途 | 适用场景 |
 | --- | --- | --- |
-| [code-change-check](code-change-check/SKILL.md) | 追踪调用路径，选择最小完整改动，结合完整 diff 自检并验证 | 修复、功能调整、重构 |
+| [code-change-check](code-change-check/SKILL.md) | 追踪调用路径，选择最小完整改动，结合完整 diff 自检并验证，支持只读 PR 审查 | 修复、功能调整、重构、PR 审查 |
 | [fork-upstream-sync](fork-upstream-sync/SKILL.md) | 识别上下游，保留 fork 定制，同步上游并发布可追溯的自有 tag | fork 状态检查、上游合并、正式 tag 或分支快照发布 |
 
 ## 目录结构
