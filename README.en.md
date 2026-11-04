@@ -4,7 +4,7 @@
 
 A collection of reusable workflows for coding agents, covering code changes, self-review, pull request reviews, fork synchronization, and version releases.
 
-Each skill provides instructions in its own `SKILL.md` and is independent of any specific project, account, or technology stack. Project rules come from the `AGENTS.md`, `CLAUDE.md`, or equivalent instructions recognized by the current tool, along with contribution guidelines.
+Each skill provides instructions in its own `SKILL.md` and is independent of any specific project or account. The index identifies its technology stack and scope. Project rules come from the `AGENTS.md`, `CLAUDE.md`, or equivalent instructions recognized by the current tool, along with contribution guidelines.
 
 The skill instructions are currently written in Simplified Chinese.
 
@@ -14,12 +14,14 @@ The skill instructions are currently written in Simplified Chinese.
 | --- | --- | --- |
 | [code-change-check](code-change-check/SKILL.md) | Trace call paths, make minimal but complete changes, review the full diff, and validate the result, with a read-only PR review mode | Bug fixes, feature changes, refactoring, and PR reviews |
 | [fork-upstream-sync](fork-upstream-sync/SKILL.md) | Identify upstream and fork repositories, preserve customizations, sync upstream changes, and publish traceable fork tags | Fork status checks, upstream merges, and releases based on official upstream tags or branch snapshots |
+| [ui-regression-check](ui-regression-check/SKILL.md) | Select focused UI regression tests, reuse valid builds, and identify failures | Focused iOS / Xcode UI checks with a configurable runner template and tests |
 
 ## Repository structure
 
 ```text
 agent-skills/
 ├── .gitignore
+├── AGENTS.md
 ├── LICENSE
 ├── README.md
 ├── README.en.md
@@ -27,11 +29,18 @@ agent-skills/
 │   ├── SKILL.md
 │   └── references/
 │       └── git-checks.md
-└── fork-upstream-sync/
+├── fork-upstream-sync/
+│   ├── SKILL.md
+│   └── references/
+│       ├── release.md
+│       └── validation.md
+└── ui-regression-check/
     ├── SKILL.md
-    └── references/
-        ├── release.md
-        └── validation.md
+    ├── agents/
+    │   └── openai.yaml
+    └── scripts/
+        ├── run_ui_regression.py
+        └── test_ui_regression.py
 ```
 
 ## Installation and usage
@@ -68,12 +77,12 @@ The [official Claude Code documentation](https://code.claude.com/docs/en/skills)
 ## Maintenance
 
 * Keep reusable workflows in skills and project-specific rules in the target repository.
-* Do not write credentials, private repository information, business records, or local machine paths from actual runs back into shared skills.
+* Keep real target-project names, personal attribution, credentials, private repository information, business records, and absolute machine paths out of documentation, scripts, tests, metadata, and PR descriptions. Label fictional placeholders clearly. Public third-party references and necessary acknowledgments may remain. See [AGENTS.md](AGENTS.md) for public-content conventions.
 * When adding or updating a skill, update the indexes in both READMEs and check local links and skill entry formats.
 
-## Sources
+## Acknowledgments
 
-References for `code-change-check` are listed in its [Sources and maintenance](code-change-check/SKILL.md#来源与维护) section.
+Public references for `code-change-check` are listed in its [References](code-change-check/SKILL.md#参考来源) section.
 
 ## License
 
