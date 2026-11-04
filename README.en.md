@@ -4,7 +4,7 @@
 
 A collection of reusable workflows for coding agents, covering code changes, self-review, pull request reviews, fork synchronization, and version releases.
 
-Each skill provides instructions in its own `SKILL.md` and is independent of any specific project, account, or technology stack. Project rules come from the `AGENTS.md`, `CLAUDE.md`, or equivalent instructions recognized by the current tool, along with contribution guidelines.
+General-purpose skills provide instructions in their own `SKILL.md` and are independent of any specific project, account, or technology stack. Project-specific skills are labeled in the index. Project rules come from the `AGENTS.md`, `CLAUDE.md`, or equivalent instructions recognized by the current tool, along with contribution guidelines.
 
 The skill instructions are currently written in Simplified Chinese.
 
@@ -14,6 +14,7 @@ The skill instructions are currently written in Simplified Chinese.
 | --- | --- | --- |
 | [code-change-check](code-change-check/SKILL.md) | Trace call paths, make minimal but complete changes, review the full diff, and validate the result, with a read-only PR review mode | Bug fixes, feature changes, refactoring, and PR reviews |
 | [fork-upstream-sync](fork-upstream-sync/SKILL.md) | Identify upstream and fork repositories, preserve customizations, sync upstream changes, and publish traceable fork tags | Fork status checks, upstream merges, and releases based on official upstream tags or branch snapshots |
+| [ui-regression-check](ui-regression-check/SKILL.md) | Select focused UI regression tests, reuse valid builds, and identify failures | Currently a Daynest-specific archive with runner and test copies |
 
 ## Repository structure
 
@@ -27,11 +28,18 @@ agent-skills/
 │   ├── SKILL.md
 │   └── references/
 │       └── git-checks.md
-└── fork-upstream-sync/
+├── fork-upstream-sync/
+│   ├── SKILL.md
+│   └── references/
+│       ├── release.md
+│       └── validation.md
+└── ui-regression-check/
     ├── SKILL.md
-    └── references/
-        ├── release.md
-        └── validation.md
+    ├── agents/
+    │   └── openai.yaml
+    └── scripts/
+        ├── run_ui_regression.py
+        └── test_ui_regression.py
 ```
 
 ## Installation and usage
