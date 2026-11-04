@@ -35,7 +35,7 @@ python3 Scripts/run_ui_regression.py --device <UDID> --test <testMethod>
 * `--cache-dir` 指定缓存和结果位置，默认在 `~/Library/Caches/agent-skills/UIRegression/`。`--rebuild` 重新增量构建。`--build-timeout`／`--test-timeout` 默认 1800／600 秒，超时返回 124，不自动重试。
 * `--keep-runs N` 按需保留当前源码缓存最近 N 次记录（含本次），默认不清理证据。`.DS_Store` 不属于构建输入，其他未知文件保持保守判断。
 * 缓存锁和固定的 `~/Library/Caches/agent-skills/UIRegression/locks/` 设备锁拒绝冲突。子进程继承锁，SIGTERM／超时清理本次进程组。SIGKILL 无法收尾，但存活子进程持锁期间新运行仍被拒绝。
-* 锁只协调使用同一锁目录的执行器，仍需避免外部 Xcode 同时操作相同模拟器。锁冲突时查看日志和 PID，不删除锁文件来抢占。
+* 锁只协调使用同一锁目录的执行器，仍需避免外部 Xcode 同时操作相同模拟器。报错会给出冲突锁文件路径，可用 `lsof -t <锁文件>` 查询持有该文件的进程，再结合日志判断占用者。被拒绝的新运行不会打印原占用者 PID，不删除锁文件来抢占。
 
 ## 失败后定向处理
 
