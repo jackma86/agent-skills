@@ -60,7 +60,3 @@ description: 修改代码或审查 PR 时，追踪调用路径并结合完整 di
 ## 回复与维护
 
 简短说明结果、五点自检结论、必要新增项依据、已执行与未执行的验证及阻塞，不用“全部通过”替代证据，不生成额外检查文档。项目特有规则留在目标项目。
-
-## 来源与维护
-
-整理自用户提供的代码修改流程和五点检查表。复用顺序参考 [Ponytail](https://github.com/DietrichGebert/ponytail)，假设澄清与可验证结果的组织参考 [Karpathy Guidelines](https://github.com/multica-ai/andrej-karpathy-skills)。本文件为独立整理，没有复制上游文件或安装其他 Skill。

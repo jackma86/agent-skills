@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run explicitly selected, isolated Daynest UI tests with a validated simulator build."""
+"""Template for running selected iOS UI tests with a validated simulator build."""
 import argparse
 from contextlib import contextmanager
 import fcntl
@@ -17,21 +17,26 @@ import time
 import uuid
 
 
-BUILD_SETTINGS = ["-scheme", "Daynest", "-configuration", "Debug", "-sdk", "iphonesimulator",
+# Fictional example values: adapt these settings in the target project before use.
+PROJECT_FILE = "ExampleApp.xcodeproj"
+TEST_SOURCE = "Tests/ExampleAppUITests/ExampleAppUITests.swift"
+BUILD_SETTINGS = ["-scheme", "ExampleApp", "-configuration", "Debug", "-sdk", "iphonesimulator",
                   "CODE_SIGN_IDENTITY=-", "CODE_SIGNING_ALLOWED=YES"]
-BUILD_INPUTS = ["App", "Packages", "Tests", "Daynest.xcodeproj", "project.yml"]
+BUILD_INPUTS = ["App", "Packages", "Tests", PROJECT_FILE, "project.yml"]
+EXPECTED_BINARIES = ["Debug-iphonesimulator/ExampleApp.app/ExampleApp",
+                     "Debug-iphonesimulator/ExampleAppUITests-Runner.app/PlugIns/ExampleAppUITests.xctest/ExampleAppUITests"]
 EXCLUDED_DIRECTORIES = {".build", ".git", "DerivedData", "xcuserdata", "__pycache__"}
 EXCLUDED_FILES = {".DS_Store"}
-CACHE_ROOT = Path.home() / "Library/Caches/Daynest/UIRegression"
+CACHE_ROOT = Path.home() / "Library/Caches/agent-skills/UIRegression"
 DEVICE_LOCK_DIRECTORY = CACHE_ROOT / "locks"
 BUILD_TIMEOUT = 1800
 TEST_TIMEOUT = 600
-PROTECTED_DEVICES = {"Daynest Sync iPhone", "Daynest Sync iPad"}
-TEST_PREFIX = "DaynestUITests/DaynestUITests/"
+PROTECTED_DEVICES = {"Reserved iPhone", "Reserved iPad"}
+TEST_PREFIX = "ExampleAppUITests/ExampleAppUITests/"
 
 
 def selected_tests(root, names):
-    source = (root / "Tests/DaynestUITests/DaynestUITests.swift").read_text()
+    source = (root / TEST_SOURCE).read_text()
     available = set(re.findall(r"^\s*func (test\w+)\(", source, re.MULTILINE))
     result = []
     for name in names:
@@ -114,17 +119,17 @@ def ensure_build(root, cache, run_directory, tools, before, device, rebuild=Fals
                  lock_fds=(), timeout=BUILD_TIMEOUT):
     manifest = cache / "build.json"
     derived = cache / "DerivedData"
-    products = derived / "Build/Products/Debug-iphonesimulator"
+    products = derived / "Build/Products"
     metadata = json.loads(manifest.read_text()) if manifest.exists() else {}
     test_run = cache / metadata.get("xctestrun", "missing")
-    binaries = [products / "Daynest.app/Daynest", products / "DaynestUITests-Runner.app/PlugIns/DaynestUITests.xctest/DaynestUITests"]
+    binaries = [products / name for name in EXPECTED_BINARIES]
     if not rebuild and metadata.get("fingerprint") == before and test_run.is_file() and all(p.is_file() for p in binaries):
         print(f"[REUSE] 构建 {before[:12]}", flush=True)
         return test_run
     # A failed forced rebuild must not leave the earlier build eligible for reuse.
     manifest.unlink(missing_ok=True)
     print(f"[BUILD] 构建 {before[:12]}", flush=True)
-    logged(["xcodebuild", "build-for-testing", "-project", str(root / "Daynest.xcodeproj"),
+    logged(["xcodebuild", "build-for-testing", "-project", str(root / PROJECT_FILE),
             *BUILD_SETTINGS, "-destination", f"platform=iOS Simulator,id={device}",
             "-derivedDataPath", str(derived)], run_directory / "build.log", root, lock_fds, timeout)
     if fingerprint(root, tools) != before:
@@ -179,7 +184,7 @@ def run(root, args):
     devices = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "--json"], text=True))
     device = next((d for values in devices["devices"].values() for d in values if d["udid"].upper() == device_id), None)
     if device is None or device["name"] in PROTECTED_DEVICES:
-        raise ValueError("请选择已存在的非同步验收模拟器，不创建、抹掉或操作 Daynest Sync 测试对。")
+        raise ValueError("请选择已存在且未被项目保留的模拟器，不创建、抹掉或操作受保护设备。")
     tools = [platform.machine(), subprocess.check_output(["xcode-select", "-p"], text=True),
              subprocess.check_output(["xcodebuild", "-version"], text=True),
              subprocess.check_output(["xcrun", "--sdk", "iphonesimulator", "--show-sdk-version", "--show-sdk-build-version"], text=True)]
@@ -251,8 +256,8 @@ def run(root, args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--device", required=True, help="现有非同步验收模拟器的 UDID")
-    parser.add_argument("--test", action="append", required=True, help="完整用例方法名或 DaynestUITests/DaynestUITests/test...，可重复指定")
+    parser.add_argument("--device", required=True, help="现有且未被项目保留的模拟器 UDID")
+    parser.add_argument("--test", action="append", required=True, help="完整用例方法名或 ExampleAppUITests/ExampleAppUITests/test...，可重复指定")
     parser.add_argument("--cache-dir", type=Path, help="构建缓存及原始日志目录，默认位于本机 Library/Caches")
     parser.add_argument("--rebuild", action="store_true", help="主动重新增量构建，不清空 DerivedData")
     parser.add_argument("--build-timeout", type=int, default=BUILD_TIMEOUT, help="构建超时秒数，默认 1800")
@@ -261,7 +266,7 @@ def main():
     args = parser.parse_args()
     handlers = {number: signal.signal(number, interrupted) for number in (signal.SIGTERM, signal.SIGINT)}
     try:
-        run(Path(__file__).resolve().parents[1], args)
+        run(Path.cwd(), args)
     except subprocess.TimeoutExpired as error:
         print(f"[FAIL] 命令超过 {error.timeout} 秒，已终止本次进程组，不自动重试。", file=sys.stderr)
         return 124

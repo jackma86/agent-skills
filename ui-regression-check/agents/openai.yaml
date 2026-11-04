@@ -1,4 +1,4 @@
 interface:
-  display_name: "Daynest UI 定向回归"
-  short_description: "按改动选择 Daynest 最小 UI 回归并复用有效构建，区分环境、脚本与产品失败"
-  default_prompt: "使用 $ui-regression-check 为本次 Daynest 改动选择最小相关 UI 用例，运行并报告真实验证结果。"
+  display_name: "UI 定向回归"
+  short_description: "按 iOS 项目改动选择最小 UI 回归并复用有效构建，区分环境、脚本与产品失败"
+  default_prompt: "使用 $ui-regression-check 为当前项目选择最小相关 UI 用例，核对执行器配置并报告实际验证结果。"

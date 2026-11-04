@@ -4,7 +4,7 @@
 
 面向 coding agent 的开发工作流技能集，整理代码修改、自检、PR 审查、fork 上游同步和版本发布中的可复用流程。
 
-通用 Skill 以独立的 `SKILL.md` 提供指令，不绑定具体项目、账号或技术栈。项目版 Skill 会在索引中标注适用范围。项目规则由当前工具识别的 `AGENTS.md`、`CLAUDE.md` 或等价说明及贡献规范定义。
+每个 Skill 以独立的 `SKILL.md` 提供指令，不绑定具体项目或账号。技术栈和适用范围在索引中标注。项目规则由当前工具识别的 `AGENTS.md`、`CLAUDE.md` 或等价说明及贡献规范定义。
 
 ## 技能索引
 
@@ -12,13 +12,14 @@
 | --- | --- | --- |
 | [code-change-check](code-change-check/SKILL.md) | 追踪调用路径，选择最小完整改动，结合完整 diff 自检并验证，支持只读 PR 审查 | 修复、功能调整、重构、PR 审查 |
 | [fork-upstream-sync](fork-upstream-sync/SKILL.md) | 识别上下游，保留 fork 定制，同步上游并发布可追溯的自有 tag | fork 状态检查、上游合并、正式 tag 或分支快照发布 |
-| [ui-regression-check](ui-regression-check/SKILL.md) | 选择最小相关 UI 回归、复用有效构建并识别失败 | 当前为 Daynest 项目版存档，附执行器及测试副本 |
+| [ui-regression-check](ui-regression-check/SKILL.md) | 选择最小相关 UI 回归、复用有效构建并识别失败 | iOS / Xcode UI 定向验证，附执行器配置模板和测试 |
 
 ## 目录结构
 
 ```text
 agent-skills/
 ├── .gitignore
+├── AGENTS.md
 ├── LICENSE
 ├── README.md
 ├── README.en.md
@@ -74,12 +75,8 @@ $fork-upstream-sync 检查当前 fork 的上游变化和自有定制，只报告
 ## 维护约定
 
 * 通用工作流放在 Skill 中，项目专有规则留在目标仓库。
-* 不将实际运行中的凭据、私有仓库信息、业务记录或本机路径写回通用 Skill。
+* 文档、脚本、测试、元数据和 PR 描述均不包含真实项目名、个人署名、凭据、私有仓库信息、业务记录或本机绝对路径。示例使用明确标注的虚构占位值，公开内容约定见 [AGENTS.md](AGENTS.md)。
 * 新增或调整 Skill 时，同步更新中英文 README 的索引，并检查本地链接和入口格式。
-
-## 来源
-
-`code-change-check` 的参考来源在其 [来源与维护](code-change-check/SKILL.md#来源与维护) 中列出。
 
 ## 许可证
 

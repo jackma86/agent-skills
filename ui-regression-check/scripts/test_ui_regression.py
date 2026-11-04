@@ -30,8 +30,8 @@ class UIRegressionRunnerTests(unittest.TestCase):
             "App/Resources/icon.png": "fixture-image",
             "Packages/Core/Package.swift": "fixture-package",
             "Packages/Core/Package.resolved": "fixture-lock",
-            "Tests/DaynestUITests/DaynestUITests.swift": "func testFirst() {}\nfunc testSecond() {}\nfunc testRealCloud() {}\n",
-            "Daynest.xcodeproj/project.pbxproj": "fixture-project",
+            "Tests/ExampleAppUITests/ExampleAppUITests.swift": "func testFirst() {}\nfunc testSecond() {}\nfunc testRealCloud() {}\n",
+            "ExampleApp.xcodeproj/project.pbxproj": "fixture-project",
             "project.yml": "fixture-configuration",
         }.items():
             path = self.root / name
@@ -48,8 +48,8 @@ class UIRegressionRunnerTests(unittest.TestCase):
 
     def build_products(self, *unused):
         products = self.cache / "DerivedData/Build/Products"
-        for name in ["Daynest_fixture.xctestrun", "Debug-iphonesimulator/Daynest.app/Daynest",
-                     "Debug-iphonesimulator/DaynestUITests-Runner.app/PlugIns/DaynestUITests.xctest/DaynestUITests"]:
+        for name in ["ExampleApp_fixture.xctestrun", "Debug-iphonesimulator/ExampleApp.app/ExampleApp",
+                     "Debug-iphonesimulator/ExampleAppUITests-Runner.app/PlugIns/ExampleAppUITests.xctest/ExampleAppUITests"]:
             path = products / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("fixture-build")
@@ -75,8 +75,8 @@ class UIRegressionRunnerTests(unittest.TestCase):
     def test_sources_tests_resources_dependencies_and_toolchain_invalidate_cache(self):
         initial = runner.fingerprint(self.root, self.tools)
         for name in ["App/Screen.swift", "App/Resources/icon.png", "Packages/Core/Package.swift",
-                     "Packages/Core/Package.resolved", "Tests/DaynestUITests/DaynestUITests.swift",
-                     "Daynest.xcodeproj/project.pbxproj", "project.yml"]:
+                     "Packages/Core/Package.resolved", "Tests/ExampleAppUITests/ExampleAppUITests.swift",
+                     "ExampleApp.xcodeproj/project.pbxproj", "project.yml"]:
             with self.subTest(name=name):
                 path = self.root / name
                 before = path.read_bytes()
@@ -90,7 +90,7 @@ class UIRegressionRunnerTests(unittest.TestCase):
 
     def test_build_and_personal_xcode_state_do_not_invalidate_cache(self):
         initial = runner.fingerprint(self.root, self.tools)
-        for name in ["Packages/Core/.build/cache", "Daynest.xcodeproj/xcuserdata/person.xcuserstate"]:
+        for name in ["Packages/Core/.build/cache", "ExampleApp.xcodeproj/xcuserdata/person.xcuserstate"]:
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("machine-local state")
@@ -125,13 +125,13 @@ class UIRegressionRunnerTests(unittest.TestCase):
     def test_deleted_product_requires_new_build(self):
         with patch.object(runner, "logged", side_effect=self.build_products) as command:
             self.build()
-            (self.cache / "DerivedData/Build/Products/Debug-iphonesimulator/Daynest.app/Daynest").unlink()
+            (self.cache / "DerivedData/Build/Products/Debug-iphonesimulator/ExampleApp.app/ExampleApp").unlink()
             self.build()
             self.assertEqual(command.call_count, 2)
 
     def test_unknown_wildcard_and_real_service_tests_are_rejected(self):
         self.assertEqual(runner.selected_tests(self.root, ["testFirst", runner.TEST_PREFIX + "testFirst"]), [runner.TEST_PREFIX + "testFirst"])
-        for name in ["testMissing", "DaynestUITests", "*", "testRealCloud", "DaynestUITests/DaynestRealAPIUITests/testFirst"]:
+        for name in ["testMissing", "ExampleAppUITests", "*", "testRealCloud", "ExampleAppUITests/ExampleAppRealAPIUITests/testFirst"]:
             with self.subTest(name=name), self.assertRaises(ValueError):
                 runner.selected_tests(self.root, [name])
 
@@ -183,13 +183,13 @@ class UIRegressionRunnerTests(unittest.TestCase):
         self.assertIn("-xctestrun", tests[1])
         self.assertNotIn("-project", tests[1])
 
-    def test_sync_acceptance_device_is_rejected_before_build_or_boot(self):
+    def test_reserved_device_is_rejected_before_build_or_boot(self):
         args = SimpleNamespace(device=self.device, test=["testFirst"], cache_dir=self.cache, rebuild=False,
                                build_timeout=runner.BUILD_TIMEOUT, test_timeout=runner.TEST_TIMEOUT, keep_runs=None)
-        devices = {"devices": {"fixture": [dict(udid=self.device, name="Daynest Sync iPhone", state="Shutdown")]}}
+        devices = {"devices": {"fixture": [dict(udid=self.device, name="Reserved iPhone", state="Shutdown")]}}
         with patch.object(runner.subprocess, "check_output", return_value=json.dumps(devices)) as output, \
                 patch.object(runner, "logged") as command:
-            with self.assertRaisesRegex(ValueError, "非同步验收模拟器"):
+            with self.assertRaisesRegex(ValueError, "未被项目保留的模拟器"):
                 runner.run(self.root, args)
             self.assertEqual(output.call_count, 1)
             command.assert_not_called()
@@ -211,8 +211,8 @@ with (root / "commands.log").open("a") as out:
     out.write(Path(sys.argv[0]).name + " " + " ".join(sys.argv[1:]) + "\\n")
 if "build-for-testing" in sys.argv:
     products = cache / "DerivedData/Build/Products"
-    for name in ["Daynest_fixture.xctestrun", "Debug-iphonesimulator/Daynest.app/Daynest",
-                 "Debug-iphonesimulator/DaynestUITests-Runner.app/PlugIns/DaynestUITests.xctest/DaynestUITests"]:
+    for name in ["ExampleApp_fixture.xctestrun", "Debug-iphonesimulator/ExampleApp.app/ExampleApp",
+                 "Debug-iphonesimulator/ExampleAppUITests-Runner.app/PlugIns/ExampleAppUITests.xctest/ExampleAppUITests"]:
         path = products / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("build")
@@ -294,6 +294,13 @@ elif "xcresulttool" in sys.argv:
         self.assertTrue((self.cache / "runs" / names[-1]).exists())
         self.assertFalse((self.cache / "runs" / names[0]).exists())
         self.assertTrue(self.directory.exists())
+
+    def test_main_uses_invoking_project_root_instead_of_skill_directory(self):
+        argv = ["run_ui_regression.py", "--device", self.device, "--test", "testFirst"]
+        with patch.object(runner.sys, "argv", argv), patch.object(runner.Path, "cwd", return_value=self.root), \
+                patch.object(runner, "run") as run:
+            self.assertEqual(runner.main(), 0)
+        self.assertEqual(run.call_args.args[0], self.root)
 
     def test_main_preserves_test_failure_exit_code_without_retry(self):
         argv = ["run_ui_regression.py", "--device", self.device, "--test", "testFirst"]
