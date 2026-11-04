@@ -24,7 +24,9 @@ agent-skills/
 ├── README.md
 ├── README.en.md
 ├── code-change-check/
-│   └── SKILL.md
+│   ├── SKILL.md
+│   └── references/
+│       └── git-checks.md
 └── fork-upstream-sync/
     ├── SKILL.md
     └── references/
