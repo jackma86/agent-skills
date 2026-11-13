@@ -2,7 +2,7 @@
 
 简体中文 | [English](README.en.md)
 
-面向 coding agent 的开发工作流技能集，整理代码修改、自检、PR 审查、fork 上游同步和版本发布中的可复用流程。
+面向 coding agent 的开发工作流技能集，涵盖开工评审、代码修改与自检、PR 审查、iOS 界面审查、UI 回归、fork 上游同步和版本发布。
 
 每个 Skill 以独立的 `SKILL.md` 提供指令，不绑定具体项目或账号。技术栈和适用范围在索引中标注。项目规则由当前工具识别的 `AGENTS.md`、`CLAUDE.md` 或等价说明及贡献规范定义。
 
@@ -11,7 +11,9 @@
 | Skill | 用途 | 适用场景 |
 | --- | --- | --- |
 | [code-change-check](code-change-check/SKILL.md) | 追踪调用路径，选择最小完整改动，结合完整 diff 自检并验证，支持只读 PR 审查 | 修复、功能调整、重构、PR 审查 |
+| [development-preflight](development-preflight/SKILL.md) | 核对需求、验收条件、设计和技术方案 | 开工评审、实施范围或关键行为待确认 |
 | [fork-upstream-sync](fork-upstream-sync/SKILL.md) | 识别上下游，保留 fork 定制，同步上游并发布可追溯的自有 tag | fork 状态检查、上游合并、正式 tag 或分支快照发布 |
+| [ios-ui-review](ios-ui-review/SKILL.md) | 审查运行截图和实际交互，记录可复核的问题 | iOS 界面改动验收和专项审查 |
 | [ui-regression-check](ui-regression-check/SKILL.md) | 选择最小相关 UI 回归、复用有效构建并识别失败 | iOS / Xcode UI 定向验证，附执行器配置模板和测试 |
 
 ## 目录结构
@@ -27,11 +29,15 @@ agent-skills/
 │   ├── SKILL.md
 │   └── references/
 │       └── git-checks.md
+├── development-preflight/
+│   └── SKILL.md
 ├── fork-upstream-sync/
 │   ├── SKILL.md
 │   └── references/
 │       ├── release.md
 │       └── validation.md
+├── ios-ui-review/
+│   └── SKILL.md
 └── ui-regression-check/
     ├── SKILL.md
     ├── agents/

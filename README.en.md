@@ -2,7 +2,7 @@
 
 [简体中文](README.md) | English
 
-A collection of reusable workflows for coding agents, covering code changes, self-review, pull request reviews, fork synchronization, and version releases.
+A collection of reusable workflows for coding agents, covering development readiness reviews, code changes and self-review, pull request reviews, iOS UI reviews, UI regression testing, fork synchronization, and version releases.
 
 Each skill provides instructions in its own `SKILL.md` and is independent of any specific project or account. The index identifies its technology stack and scope. Project rules come from the `AGENTS.md`, `CLAUDE.md`, or equivalent instructions recognized by the current tool, along with contribution guidelines.
 
@@ -13,7 +13,9 @@ The skill instructions are currently written in Simplified Chinese.
 | Skill | Purpose | Use cases |
 | --- | --- | --- |
 | [code-change-check](code-change-check/SKILL.md) | Trace call paths, make minimal but complete changes, review the full diff, and validate the result, with a read-only PR review mode | Bug fixes, feature changes, refactoring, and PR reviews |
+| [development-preflight](development-preflight/SKILL.md) | Check requirements, acceptance criteria, design, and the technical plan | Readiness reviews and tasks with open scope or behavior decisions |
 | [fork-upstream-sync](fork-upstream-sync/SKILL.md) | Identify upstream and fork repositories, preserve customizations, sync upstream changes, and publish traceable fork tags | Fork status checks, upstream merges, and releases based on official upstream tags or branch snapshots |
+| [ios-ui-review](ios-ui-review/SKILL.md) | Review runtime screenshots and interactions and document reproducible findings | iOS UI acceptance checks and focused reviews |
 | [ui-regression-check](ui-regression-check/SKILL.md) | Select focused UI regression tests, reuse valid builds, and identify failures | Focused iOS / Xcode UI checks with a configurable runner template and tests |
 
 ## Repository structure
@@ -29,11 +31,15 @@ agent-skills/
 │   ├── SKILL.md
 │   └── references/
 │       └── git-checks.md
+├── development-preflight/
+│   └── SKILL.md
 ├── fork-upstream-sync/
 │   ├── SKILL.md
 │   └── references/
 │       ├── release.md
 │       └── validation.md
+├── ios-ui-review/
+│   └── SKILL.md
 └── ui-regression-check/
     ├── SKILL.md
     ├── agents/
