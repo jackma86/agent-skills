@@ -12,6 +12,7 @@ The skill instructions are currently written in Simplified Chinese.
 
 | Skill | Purpose | Use cases |
 | --- | --- | --- |
+| [bug-preflight](bug-preflight/SKILL.md) | Analyze and test a bug, document evidence, and propose a fix | Pre-fix bug reviews. Proceed when authorized and the plan is clear. Seek confirmation when the project requires approval or key decisions remain open |
 | [code-change-check](code-change-check/SKILL.md) | Trace call paths, make minimal but complete changes, review the full diff, and validate the result, with a read-only PR review mode | Bug fixes, feature changes, refactoring, and PR reviews |
 | [development-preflight](development-preflight/SKILL.md) | Check requirements, acceptance criteria, design, and the technical plan | Readiness reviews and tasks with open scope or behavior decisions |
 | [fork-upstream-sync](fork-upstream-sync/SKILL.md) | Identify upstream and fork repositories, preserve customizations, sync upstream changes, and publish traceable fork tags | Fork status checks, upstream merges, and releases based on official upstream tags or branch snapshots |
@@ -27,6 +28,8 @@ agent-skills/
 ├── LICENSE
 ├── README.md
 ├── README.en.md
+├── bug-preflight/
+│   └── SKILL.md
 ├── code-change-check/
 │   ├── SKILL.md
 │   └── references/
