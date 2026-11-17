@@ -10,6 +10,7 @@
 
 | Skill | 用途 | 适用场景 |
 | --- | --- | --- |
+| [bug-preflight](bug-preflight/SKILL.md) | 分析并实测 Bug，记录证据并提出修复方案 | Bug 修复前评审。已授权且方案明确时直接修复，项目要求审批或关键问题待定时先确认 |
 | [code-change-check](code-change-check/SKILL.md) | 追踪调用路径，选择最小完整改动，结合完整 diff 自检并验证，支持只读 PR 审查 | 修复、功能调整、重构、PR 审查 |
 | [development-preflight](development-preflight/SKILL.md) | 核对需求、验收条件、设计和技术方案 | 开工评审、实施范围或关键行为待确认 |
 | [fork-upstream-sync](fork-upstream-sync/SKILL.md) | 识别上下游，保留 fork 定制，同步上游并发布可追溯的自有 tag | fork 状态检查、上游合并、正式 tag 或分支快照发布 |
@@ -25,6 +26,8 @@ agent-skills/
 ├── LICENSE
 ├── README.md
 ├── README.en.md
+├── bug-preflight/
+│   └── SKILL.md
 ├── code-change-check/
 │   ├── SKILL.md
 │   └── references/
